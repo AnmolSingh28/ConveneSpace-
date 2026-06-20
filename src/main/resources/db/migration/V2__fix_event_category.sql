@@ -1,0 +1,1 @@
+ALTER TABLE concerts ALTER COLUMN event_category DROP NOT NULL;
