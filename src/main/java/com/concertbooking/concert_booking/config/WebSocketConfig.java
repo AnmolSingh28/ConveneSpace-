@@ -27,7 +27,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
 
         registry.enableStompBrokerRelay("/topic")
-                .setRelayHost("127.0.0.1")
+                .setRelayHost("rabbitmq")
                 .setRelayPort(61613) // Default external STOMP port
                 .setClientLogin("concert_user")
                 .setClientPasscode("concert_pass")

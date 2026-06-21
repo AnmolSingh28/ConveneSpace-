@@ -1,6 +1,28 @@
 
 
 services:
+  backend:
+    build: .
+    container_name: concert_backend
+    env_file:
+      - secrets.env
+    environment:
+      DB_HOST: postgres
+      REDIS_HOST: redis
+      RABBITMQ_HOST: rabbitmq
+    depends_on:
+      - postgres
+      - redis
+      - rabbitmq
+    ports:
+      - "8080:8080"
+  frontend:
+    build: ./frontend
+    container_name: convenespace_frontend
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
   postgres:
     env_file:
       - secrets.env
