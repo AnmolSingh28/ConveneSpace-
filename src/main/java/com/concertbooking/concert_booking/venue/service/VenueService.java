@@ -21,6 +21,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 @RequiredArgsConstructor
@@ -49,7 +51,7 @@ public class VenueService {
     @Transactional
     @CacheEvict(value="venues",allEntries = true)
     public VenueResponse createVenue(VenueRequest request) {
-        if (venueRepository.existsByNameIgnoreCase(request.getName())) {
+        if (venueRepository.existsActiveVenueByName(request.getName())) {
             throw new ResourceNotFoundException("Venue with this name already exists");
         }
         Venue venue = Venue.builder()
@@ -63,6 +65,7 @@ public class VenueService {
                 .layoutImageUrl(request.getLayoutImageUrl())
                 .isActive(true)
                 .build();
+        extractCoordinates(venue, request.getGoogleMapsURL());
         log.info("Creating venue: {}", venue.getName());
         return venueMapper.toResponse(venueRepository.save(venue));
     }
@@ -75,6 +78,7 @@ public class VenueService {
             existing.setAddress(request.getAddress());
             existing.setTotalCapacity(request.getTotalCapacity());
             existing.setGoogleMapsURL(request.getGoogleMapsURL());
+            extractCoordinates(existing, request.getGoogleMapsURL());
             existing.setLocationDescription(request.getLocationDescription());
             existing.setLayoutImageUrl(request.getLayoutImageUrl());
             log.info("Updated venue: {}", venueId);
@@ -129,6 +133,18 @@ public class VenueService {
                     .orElseThrow(() -> new ResourceNotFoundException(
                             "Venue not found: " + venueId));
         }
+
+    private void extractCoordinates(Venue venue, String url) {
+        if (url == null||url.isBlank()){
+            return;
+        }
+        Pattern pattern = Pattern.compile("@(-?\\d+\\.\\d+),(-?\\d+\\.\\d+)");
+        Matcher matcher = pattern.matcher(url);
+        if (matcher.find()) {
+            venue.setLatitude(Double.parseDouble(matcher.group(1)));
+            venue.setLongitude(Double.parseDouble(matcher.group(2)));
+        }
+    }
     }
 
 
