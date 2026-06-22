@@ -19,7 +19,7 @@ const navigate = useNavigate();
     if (!concertId && !tierId) return;
 
     const client = new Client({
-      webSocketFactory: () => new SockJS('http://localhost:8080/ws'),
+      webSocketFactory: () => new SockJS('https://convenespace.space/ws'),
       reconnectDelay: 5000,
       onConnect: () => {
         setConnected(true);

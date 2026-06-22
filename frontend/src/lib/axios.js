@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'http://localhost:8080',
+ baseURL: 'https://convenespace.space',
   headers: {
     'Content-Type': 'application/json',
   },
@@ -59,7 +59,7 @@ api.interceptors.response.use((response) => response,
         }
 
         const res = await axios.post(
-          'http://localhost:8080/api/v1/auth/refresh-token',
+         'https://convenespace.space/api/v1/auth/refresh-token',
           { refreshToken }
         );
 

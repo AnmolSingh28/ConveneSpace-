@@ -3,6 +3,7 @@
 services:
   backend:
     build: .
+    restart: unless-stopped
     container_name: concert_backend
     env_file:
       - secrets.env
@@ -18,14 +19,16 @@ services:
       - "8080:8080"
   frontend:
     build: ./frontend
+    restart: unless-stopped
     container_name: convenespace_frontend
     depends_on:
       - backend
     ports:
-      - "80:80"
+      - "3001:80"
   postgres:
     env_file:
       - secrets.env
+    restart: unless-stopped
     image: postgres:16
     container_name: concert_postgres
     environment:
@@ -40,6 +43,7 @@ services:
   redis:
     env_file:
       - secrets.env
+    restart: unless-stopped
     image: redis:7.2-alpine
     container_name: concert_redis
     ports:
@@ -49,17 +53,19 @@ services:
   prometheus:
     env_file:
       - secrets.env
+    restart: unless-stopped
     image: prom/prometheus
     container_name: concert_prometheus
     ports:
       - "9090:9090"
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
-    restart: unless-stopped
+   
 
   grafana:
     env_file:
       - secrets.env
+    restart: unless-stopped
     image: grafana/grafana
     container_name: concert_grafana
     environment:
@@ -69,13 +75,13 @@ services:
       - "3000:3000"
     depends_on:
       - prometheus
-    restart: unless-stopped
     volumes:
       - grafana_data:/var/lib/grafana
 
   rabbitmq:
     env_file:
       - secrets.env
+    restart: unless-stopped
     image: rabbitmq:3.13-management
     container_name: concert_rabbitmq
     environment:
