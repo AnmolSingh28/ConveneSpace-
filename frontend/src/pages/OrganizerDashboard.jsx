@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Eye, Edit, Ticket, TrendingUp, Star, Users, BarChart3, IndianRupee, CalendarCheck } from 'lucide-react';
+import { Plus, Eye, Edit, Ticket, TrendingUp, Star, Users,Building, ChevronDown, ChevronUp, X, BarChart3, IndianRupee, CalendarCheck } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/button';
 import { Skeleton } from '../components/ui/skeleton';
@@ -7,6 +7,8 @@ import api from '../lib/axios';
 import useAuthStore from '../store/authStore';
 import { formatDate, formatCurrency } from '../lib/utils';
 import toast from 'react-hot-toast';
+import { Input } from '../components/ui/input';
+import { Label } from '../components/ui/label';
 
 function MetricCard({ icon: Icon, label, value, color }) {
   return (
@@ -29,6 +31,16 @@ export default function OrganizerDashboard() {
   const [metrics, setMetrics] = useState(null);
   const [loading, setLoading] = useState(true);
   const [loadingMetrics, setLoadingMetrics] = useState(true);
+  const [venues, setVenues] = useState([]);
+  const [showVenueForm, setShowVenueForm] = useState(false);
+  const [expandedVenue, setExpandedVenue] = useState(null);
+  const [venueSections, setVenueSections] = useState({});
+  const [showSectionForm, setShowSectionForm] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [savingSection, setSavingSection] = useState(false);
+  const SECTION_TYPES = ['GA', 'ASSIGNED'];
+  const [sectionForm, setSectionForm] = useState({ name: '', sectionType: 'GA', totalCapacity: '' });
+  const [venueForm, setVenueForm] = useState({ name: '', city: '', address: '', venueType: 'ESTABLISHED', totalCapacity: '', googleMapsURL: '', locationDescription: '' });
 
   useEffect(() => {
     if (!user) return;
@@ -38,6 +50,7 @@ export default function OrganizerDashboard() {
     }
     fetchMyConcerts();
     fetchMetrics();
+    fetchVenues();
   }, [user]);
 
   const fetchMyConcerts = async () => {
@@ -61,6 +74,69 @@ export default function OrganizerDashboard() {
       setLoadingMetrics(false);
     }
   };
+  const fetchVenues = async () => {
+    try {
+      const res = await api.get('/api/v1/venues');
+      setVenues(res.data.data || []);
+    } catch { toast.error('Failed to load venues'); }
+    finally { setLoading(false); }
+  };
+
+  const fetchSections = async (venueId) => {
+    try {
+      const res = await api.get(`/api/v1/venues/${venueId}/sections`);
+      setVenueSections(prev => ({ ...prev, [venueId]: res.data.data || [] }));
+    } catch { toast.error('Failed to load sections'); }
+  };
+  const handleExpandVenue = (venueId) => {
+    if (expandedVenue === venueId) {
+      setExpandedVenue(null);
+    } else {
+      setExpandedVenue(venueId);
+      if (!venueSections[venueId]) fetchSections(venueId);
+    }
+  };
+
+  const handleCreateVenue = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      const res = await api.post('/api/v1/venues', {
+        ...venueForm,
+        totalCapacity: parseInt(venueForm.totalCapacity),
+      });
+      toast.success('Venue created! Now add sections.');
+      setShowVenueForm(false);
+      setVenueForm({ name: '', city: '', address: '', venueType: 'ESTABLISHED', totalCapacity: '', googleMapsURL: '', locationDescription: '' });
+      await fetchVenues();
+      const newVenueId = res.data.data?.id;
+      if (newVenueId) {
+        setExpandedVenue(newVenueId);
+        setShowSectionForm(newVenueId);
+        setVenueSections(prev => ({ ...prev, [newVenueId]: [] }));
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to create venue');
+    } finally { setSaving(false); }
+  };
+
+  const handleAddSection = async (venueId) => {
+    setSavingSection(true);
+    try {
+      await api.post(`/api/v1/venues/${venueId}/sections`, {
+        name: sectionForm.name,
+        sectionType: sectionForm.sectionType,
+        totalCapacity: parseInt(sectionForm.totalCapacity),
+      });
+      toast.success('Section added');
+      setSectionForm({ name: '', sectionType: 'GA', totalCapacity: '' });
+      setShowSectionForm(null);
+      fetchSections(venueId);
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to add section');
+    } finally { setSavingSection(false); }
+  };
+
 
   const STATUS_COLORS = {
     DRAFT: 'bg-gray-100 text-gray-700',
@@ -75,14 +151,25 @@ export default function OrganizerDashboard() {
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-2xl font-bold">Organizer Dashboard</h1>
-          <p className="text-muted-foreground text-sm mt-1">Manage your concerts and events</p>
+          <p className="text-muted-foreground text-sm mt-1">
+            Manage your concerts and events
+          </p>
         </div>
-        <Link to="/organizer/create">
-          <Button className="gap-2">
-            <Plus className="h-4 w-4" />
-            Create Concert
+        <div className="flex gap-2">
+          <Button variant="outline"
+                  onClick={() => setShowVenueForm(!showVenueForm)}
+          >
+            <Building className="h-4 w-4 mr-2" />
+            Manage Venues
           </Button>
-        </Link>
+
+          <Link to="/organizer/create">
+            <Button className="gap-2">
+              <Plus className="h-4 w-4" />
+              Create Concert
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {/* ANALYTICS METRICS */}
@@ -190,6 +277,108 @@ export default function OrganizerDashboard() {
           ))}
         </div>
       )}
+      {/* VENUE MANAGEMENT */}
+      {showVenueForm && (
+          <div className="border rounded-xl p-5 mb-6 bg-card">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="font-semibold">Manage Venues</h2>
+              <Button variant="outline" size="sm" onClick={() => setShowVenueForm(false)}>Close</Button>
+            </div>
+
+            {/* Existing venues */}
+            <div className="space-y-3 mb-4">
+              {venues.map((venue) => (
+                  <div key={venue.id} className="border rounded-xl bg-background overflow-hidden">
+                    <div className="p-3 flex items-start justify-between gap-4">
+                      <div>
+                        <h3 className="font-medium text-sm">{venue.name}</h3>
+                        <p className="text-xs text-muted-foreground">{venue.city} · {venue.totalCapacity?.toLocaleString()} capacity</p>
+                      </div>
+                      <Button variant="outline" size="sm" onClick={() => handleExpandVenue(venue.id)} className="text-xs flex items-center gap-1">
+                        Sections {expandedVenue === venue.id ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                      </Button>
+                    </div>
+
+                    {expandedVenue === venue.id && (
+                        <div className="border-t bg-muted/30 p-3">
+                          <div className="flex justify-between items-center mb-2">
+                            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Sections</span>
+                            <Button size="sm" variant="outline" className="text-xs h-7 gap-1"
+                                    onClick={() => { setShowSectionForm(venue.id); }}>
+                              <Plus className="h-3 w-3" /> Add Section
+                            </Button>
+                          </div>
+                          {(venueSections[venue.id] || []).length === 0 ? (
+                              <p className="text-xs text-muted-foreground italic">No sections yet.</p>
+                          ) : (
+                              <div className="space-y-1 mb-2">
+                                {(venueSections[venue.id] || []).map((section) => (
+                                    <div key={section.id} className="flex items-center justify-between bg-card rounded-lg px-3 py-2 border">
+                                      <span className="text-sm">{section.name} <span className="text-xs text-muted-foreground">· {section.sectionType} · {section.totalCapacity?.toLocaleString()}</span></span>
+                                    </div>
+                                ))}
+                              </div>
+                          )}
+                          {showSectionForm === venue.id && (
+                              <div className="border rounded-lg p-3 bg-card mt-2">
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                  <div className="space-y-1">
+                                    <Label className="text-xs">Name</Label>
+                                    <Input placeholder="e.g. Floor GA" value={sectionForm.name}
+                                           onChange={(e) => setSectionForm({ ...sectionForm, name: e.target.value })} />
+                                  </div>
+                                  <div className="space-y-1">
+                                    <Label className="text-xs">Type</Label>
+                                    <select className="w-full px-3 py-2 rounded-md border bg-background text-sm"
+                                            value={sectionForm.sectionType}
+                                            onChange={(e) => setSectionForm({ ...sectionForm, sectionType: e.target.value })}>
+                                      {SECTION_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+                                    </select>
+                                  </div>
+                                  <div className="space-y-1">
+                                    <Label className="text-xs">Capacity</Label>
+                                    <Input type="number" placeholder="e.g. 500" value={sectionForm.totalCapacity}
+                                           onChange={(e) => setSectionForm({ ...sectionForm, totalCapacity: e.target.value })} />
+                                  </div>
+                                </div>
+                                <div className="flex gap-2 mt-2">
+                                  <Button size="sm" className="text-xs h-7" disabled={savingSection || !sectionForm.name || !sectionForm.totalCapacity}
+                                          onClick={() => handleAddSection(venue.id)}>
+                                    {savingSection ? 'Adding...' : 'Add Section'}
+                                  </Button>
+                                  <Button size="sm" variant="outline" className="text-xs h-7" onClick={() => setShowSectionForm(null)}>Cancel</Button>
+                                </div>
+                              </div>
+                          )}
+                        </div>
+                    )}
+                  </div>
+              ))}
+            </div>
+
+            {/* Create new venue form */}
+            <h3 className="font-medium text-sm mb-3">Add New Venue</h3>
+            <form onSubmit={handleCreateVenue} className="space-y-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1.5"><Label className="text-xs">Venue Name</Label><Input placeholder="e.g. Jio World Centre" value={venueForm.name} onChange={(e) => setVenueForm({ ...venueForm, name: e.target.value })} required /></div>
+                <div className="space-y-1.5"><Label className="text-xs">City</Label><Input placeholder="e.g. Mumbai" value={venueForm.city} onChange={(e) => setVenueForm({ ...venueForm, city: e.target.value })} required /></div>
+                <div className="space-y-1.5 sm:col-span-2"><Label className="text-xs">Address</Label><Input placeholder="Full address" value={venueForm.address} onChange={(e) => setVenueForm({ ...venueForm, address: e.target.value })} required /></div>
+                <div className="space-y-1.5"><Label className="text-xs">Type</Label>
+                  <select className="w-full px-3 py-2 rounded-md border bg-background text-sm" value={venueForm.venueType} onChange={(e) => setVenueForm({ ...venueForm, venueType: e.target.value })}>
+                    <option value="ESTABLISHED">Established</option>
+                    <option value="TEMPORARY">Temporary</option>
+                  </select>
+                </div>
+                <div className="space-y-1.5"><Label className="text-xs">Total Capacity</Label><Input type="number" placeholder="e.g. 10000" value={venueForm.totalCapacity} onChange={(e) => setVenueForm({ ...venueForm, totalCapacity: e.target.value })} required /></div>
+                <div className="space-y-1.5 sm:col-span-2"><Label className="text-xs">Google Maps URL (optional)</Label><Input placeholder="https://maps.google.com/..." value={venueForm.googleMapsURL} onChange={(e) => setVenueForm({ ...venueForm, googleMapsURL: e.target.value })} /></div>
+              </div>
+              <div className="flex gap-2">
+                <Button type="submit" size="sm" disabled={saving}>{saving ? 'Creating...' : 'Create Venue'}</Button>
+              </div>
+            </form>
+          </div>
+      )}
+
     </div>
   );
 }
