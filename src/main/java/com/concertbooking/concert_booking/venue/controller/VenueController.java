@@ -56,19 +56,19 @@ public class VenueController {
     //ADMIN ONLY
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN','ORGANIZER')")
+    @PreAuthorize("hasAnyRole('ADMIN','ORGANIZER')")
     @Operation(summary="Create a new venue ")
     public ResponseEntity<ApiResponse<VenueResponse>> createVenue(@RequestBody VenueRequest request){
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(venueService.createVenue(request),"Venue Created Successfully"));
     }
     @PutMapping("/{venueId}") // Update venue
-    @PreAuthorize("hasRole('ADMIN','ORGANIZER')")
+    @PreAuthorize("hasAnyRole('ADMIN','ORGANIZER')")
     @Operation(summary="Update an existing venue ")
     public ResponseEntity<ApiResponse<VenueResponse>> updateVenue(@PathVariable UUID venueId ,@RequestBody VenueRequest venue){
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(venueService.updateVenue(venueId,venue),"Venue Updated Successfully"));
     }
     @PostMapping("/{venueId}/sections")
-    @PreAuthorize("hasRole('ADMIN','ORGANIZER')")
+    @PreAuthorize("hasAnyRole('ADMIN','ORGANIZER')")
     @Operation(summary="Add a section to Venue ")
     public ResponseEntity<ApiResponse<SectionResponse>> addSection(@PathVariable UUID venueId,@RequestBody SectionRequest section){
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(venueService.addSection(venueId,section),"Section Added Successfully"));
