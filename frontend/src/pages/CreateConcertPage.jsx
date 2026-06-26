@@ -15,6 +15,8 @@ export default function CreateConcertPage() {
   const [showNewCategory, setShowNewCategory] = useState(false);
 const [newCategory, setNewCategory] = useState('');
 const [creatingCategory, setCreatingCategory] = useState(false);
+  const DRAFT_KEY = "concert-form-draft";
+  const DRAFT_EXPIRY = 30 * 60 * 1000;
   const [form, setForm] = useState({
     title: '',
     artistName: '',
@@ -30,6 +32,17 @@ const [creatingCategory, setCreatingCategory] = useState(false);
   });
 
   useEffect(() => {
+    const saved = localStorage.getItem(DRAFT_KEY);
+    if (saved) {
+      try{
+      const { form: savedForm, expiresAt } = JSON.parse(saved);
+      if (Date.now() < expiresAt) {
+        setForm(savedForm);
+      } else {
+        localStorage.removeItem(DRAFT_KEY);
+      }
+    }catch{localStorage.removeItem(DRAFT_KEY); }
+    }
     api.get('/api/v1/venues').then((res) => {
       setVenues(res.data.data || []);
     });
@@ -37,10 +50,18 @@ const [creatingCategory, setCreatingCategory] = useState(false);
       const cats = res.data.data || [];
       setCategories(cats);
       if (cats.length > 0) {
-        setForm((f) => ({ ...f, categoryId: cats[0].id }));
+        setForm((f) => ({ ...f, categoryId: f.categoryId || cats[0].id }));
       }
     });
   }, []);
+  useEffect(() => {
+    localStorage.setItem(DRAFT_KEY,
+        JSON.stringify({
+          form,
+          expiresAt: Date.now() + DRAFT_EXPIRY,
+        })
+    );
+  }, [form]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -59,6 +80,7 @@ const [creatingCategory, setCreatingCategory] = useState(false);
       };
       const res = await api.post('/api/v1/concerts', payload);
       toast.success('Event created successfully');
+      localStorage.removeItem(DRAFT_KEY);
       navigate(`/organizer/concert/${res.data.data.id}`);
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to create event');
