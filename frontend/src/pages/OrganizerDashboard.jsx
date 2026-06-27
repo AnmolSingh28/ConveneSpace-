@@ -9,7 +9,7 @@ import { formatDate, formatCurrency } from '../lib/utils';
 import toast from 'react-hot-toast';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
-
+import { Trash2 } from "lucide-react";
 
 function MetricCard({ icon: Icon, label, value, color }) {
   return (
@@ -116,7 +116,17 @@ export default function OrganizerDashboard() {
       toast.error(err.response?.data?.message || 'Failed to add section');
     } finally { setSavingSection(false); }
   };
+  const handleDeleteSection = async (venueId, sectionId) => {
+    if (!window.confirm("Delete this section?")) return;
 
+    try {
+      await api.delete(`/api/v1/venues/${venueId}/sections/${sectionId}`);
+      toast.success("Section deleted");
+      fetchSections(venueId);
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to delete section");
+    }
+  };
 
   const STATUS_COLORS = {
     DRAFT: 'bg-gray-100 text-gray-700',
@@ -282,7 +292,7 @@ export default function OrganizerDashboard() {
                     {expandedVenue === venue.id && (
                         <div className="border-t bg-muted/30 p-3">
                           <div className="flex justify-between items-center mb-2">
-                            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Sections</span>
+                            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Sections ({venueSections[venue.id]?.length || 0})</span>
                             <Button size="sm" variant="outline" className="text-xs h-7 gap-1"
                                     onClick={() => { setShowSectionForm(venue.id); }}>
                               <Plus className="h-3 w-3" /> Add Section
@@ -294,7 +304,16 @@ export default function OrganizerDashboard() {
                               <div className="space-y-1 mb-2">
                                 {(venueSections[venue.id] || []).map((section) => (
                                     <div key={section.id} className="flex items-center justify-between bg-card rounded-lg px-3 py-2 border">
-                                      <span className="text-sm">{section.name} <span className="text-xs text-muted-foreground">· {section.sectionType} · {section.totalCapacity?.toLocaleString()}</span></span>
+                                      <div>
+                                        <p className="text-sm font-medium">{section.name}</p>
+                                        <p className="text-xs text-muted-foreground">
+                                          {section.sectionType} • {section.totalCapacity?.toLocaleString()} Capacity
+                                        </p>
+                                      </div>
+                                      <Button size="icon" variant="ghost" className="h-8 w-8 text-red-500 hover:bg-red-100"
+                                          onClick={() => handleDeleteSection(venue.id, section.id)}
+                                      ><Trash2 className="h-4 w-4" />
+                                      </Button>
                                     </div>
                                 ))}
                               </div>
