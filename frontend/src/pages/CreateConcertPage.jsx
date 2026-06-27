@@ -231,7 +231,16 @@ const [creatingCategory, setCreatingCategory] = useState(false);
                   {v.name}, {v.city}
                 </option>
               ))}
+
             </select>
+            <Button
+                type="button"
+                variant="link"
+                className="px-0 h-auto"
+                onClick={() => navigate("/organizer/venue/create")}
+            >
+              + Add New Venue
+            </Button>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

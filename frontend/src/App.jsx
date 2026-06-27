@@ -114,6 +114,14 @@ export default function App() {
                 </AdminRoute>
               }
             />
+              <Route
+                  path="/organizer/venue/create"
+                  element={
+                      <OrganizerRoute>
+                          <CreateVenuePage />
+                      </OrganizerRoute>
+                  }
+              />
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </main>

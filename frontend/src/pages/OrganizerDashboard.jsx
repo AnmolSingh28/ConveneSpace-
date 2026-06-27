@@ -10,6 +10,7 @@ import toast from 'react-hot-toast';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 
+
 function MetricCard({ icon: Icon, label, value, color }) {
   return (
     <div className="bg-card border rounded-xl p-4 flex items-center gap-4">
@@ -97,28 +98,7 @@ export default function OrganizerDashboard() {
     }
   };
 
-  const handleCreateVenue = async (e) => {
-    e.preventDefault();
-    setSaving(true);
-    try {
-      const res = await api.post('/api/v1/venues', {
-        ...venueForm,
-        totalCapacity: parseInt(venueForm.totalCapacity),
-      });
-      toast.success('Venue created! Now add sections.');
-      setShowVenueForm(false);
-      setVenueForm({ name: '', city: '', address: '', venueType: 'ESTABLISHED', totalCapacity: '', googleMapsURL: '', locationDescription: '' });
-      await fetchVenues();
-      const newVenueId = res.data.data?.id;
-      if (newVenueId) {
-        setExpandedVenue(newVenueId);
-        setShowSectionForm(newVenueId);
-        setVenueSections(prev => ({ ...prev, [newVenueId]: [] }));
-      }
-    } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to create venue');
-    } finally { setSaving(false); }
-  };
+  
 
   const handleAddSection = async (venueId) => {
     setSavingSection(true);
@@ -356,26 +336,14 @@ export default function OrganizerDashboard() {
               ))}
             </div>
 
-            {/* Create new venue form */}
+            {/* Add New Venue Button */}
             <h3 className="font-medium text-sm mb-3">Add New Venue</h3>
-            <form onSubmit={handleCreateVenue} className="space-y-3">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="space-y-1.5"><Label className="text-xs">Venue Name</Label><Input placeholder="e.g. Jio World Centre" value={venueForm.name} onChange={(e) => setVenueForm({ ...venueForm, name: e.target.value })} required /></div>
-                <div className="space-y-1.5"><Label className="text-xs">City</Label><Input placeholder="e.g. Mumbai" value={venueForm.city} onChange={(e) => setVenueForm({ ...venueForm, city: e.target.value })} required /></div>
-                <div className="space-y-1.5 sm:col-span-2"><Label className="text-xs">Address</Label><Input placeholder="Full address" value={venueForm.address} onChange={(e) => setVenueForm({ ...venueForm, address: e.target.value })} required /></div>
-                <div className="space-y-1.5"><Label className="text-xs">Type</Label>
-                  <select className="w-full px-3 py-2 rounded-md border bg-background text-sm" value={venueForm.venueType} onChange={(e) => setVenueForm({ ...venueForm, venueType: e.target.value })}>
-                    <option value="ESTABLISHED">Established</option>
-                    <option value="TEMPORARY">Temporary</option>
-                  </select>
-                </div>
-                <div className="space-y-1.5"><Label className="text-xs">Total Capacity</Label><Input type="number" placeholder="e.g. 10000" value={venueForm.totalCapacity} onChange={(e) => setVenueForm({ ...venueForm, totalCapacity: e.target.value })} required /></div>
-                <div className="space-y-1.5 sm:col-span-2"><Label className="text-xs">Google Maps URL (optional)</Label><Input placeholder="https://maps.google.com/..." value={venueForm.googleMapsURL} onChange={(e) => setVenueForm({ ...venueForm, googleMapsURL: e.target.value })} /></div>
-              </div>
-              <div className="flex gap-2">
-                <Button type="submit" size="sm" disabled={saving}>{saving ? 'Creating...' : 'Create Venue'}</Button>
-              </div>
-            </form>
+            <Link to="/organizer/create-venue">
+              <Button className="w-full">
+                <Plus className="h-4 w-4 mr-2" />
+                Create Venue
+              </Button>
+            </Link>
           </div>
       )}
 
