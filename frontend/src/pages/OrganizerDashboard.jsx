@@ -98,7 +98,7 @@ export default function OrganizerDashboard() {
     }
   };
 
-  
+
 
   const handleAddSection = async (venueId) => {
     setSavingSection(true);
@@ -338,7 +338,7 @@ export default function OrganizerDashboard() {
 
             {/* Add New Venue Button */}
             <h3 className="font-medium text-sm mb-3">Add New Venue</h3>
-            <Link to="/organizer/create-venue">
+            <Link to="/organizer/venue/create">
               <Button className="w-full">
                 <Plus className="h-4 w-4 mr-2" />
                 Create Venue
