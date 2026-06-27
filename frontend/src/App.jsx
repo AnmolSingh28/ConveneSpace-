@@ -20,7 +20,7 @@ import CreateConcertPage from './pages/CreateConcertPage';
 import ManageConcertPage from './pages/ManageConcertPage';
 import AdminDashboard from './pages/AdminDashboard';
 import VirtualQueuePage from './pages/VirtualQueuePage';
-
+import CreateVenuePage from './pages/CreateVenuePage';
 function ProtectedRoute({ children }) {
   const { accessToken } = useAuthStore();
   return accessToken ? children : <Navigate to="/login" replace />;
