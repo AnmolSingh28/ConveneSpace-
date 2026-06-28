@@ -245,7 +245,7 @@ public class ConcertService {
     }
     @Transactional
     @CacheEvict(value = {"concerts", "concert"}, allEntries = true)
-    public ConcertResponse updateConcert(UUID concertId, ConcertRequest request, User organizer) {
+    public ConcertResponse updateConcert(UUID concertId, UpdateConcertRequest request, User organizer) {
 
         Concert concert = getConcertEntityById(concertId);
         boolean isAdmin = organizer.getRole() == UserRole.ADMIN;

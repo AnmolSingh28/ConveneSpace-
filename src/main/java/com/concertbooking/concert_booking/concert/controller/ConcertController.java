@@ -115,7 +115,7 @@ public class ConcertController {
     @Operation(summary = "Update concert details")
     public ResponseEntity<ApiResponse<ConcertResponse>> updateConcert(
             @PathVariable UUID concertId,
-            @Valid @RequestBody ConcertRequest request,
+            @Valid @RequestBody UpdateConcertRequest  request,
             @AuthenticationPrincipal User organizer) {
         return ResponseEntity.ok(
                 ApiResponse.success(concertService.updateConcert(concertId, request, organizer), "Concert updated"));
