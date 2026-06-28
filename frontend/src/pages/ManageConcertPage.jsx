@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft, Plus, Send, BarChart3,
-  Ticket, Users, Loader2 
+  Ticket, Users, Loader2 ,Edit
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -13,7 +13,7 @@ import api from '../lib/axios';
 import { formatCurrency, formatDate } from '../lib/utils';
 import toast from 'react-hot-toast';
 import PageLoader from '../components/PageLoader';
-
+import EditConcertModal from '../components/EditConcertModal';
 export default function ManageConcertPage() {
   const { concertId } = useParams();
   const navigate = useNavigate();
@@ -23,7 +23,7 @@ export default function ManageConcertPage() {
   const [addingTier, setAddingTier] = useState(false);
   const [showTierForm, setShowTierForm] = useState(false);
   const [sections, setSections] = useState([]);
-  
+  const [showEditModal, setShowEditModal] = useState(false);
   const [tierForm, setTierForm] = useState({
     tierName: '',
     sectionId: '',
@@ -130,13 +130,19 @@ export default function ManageConcertPage() {
           </div>
           <p className="text-sm text-muted-foreground">{formatDate(concert.concertDate)} · {concert.venue?.name}</p>
         </div>
-        {concert.status === 'DRAFT' && (
-         
-          <Button onClick={handlePublish} disabled={publishing} className="gap-2 shrink-0">
-            {publishing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-            {publishing ? 'Publishing...' : 'Publish'}
-          </Button>
-        )}
+        <div className="flex gap-2 shrink-0">
+          {concert.status !== 'CANCELLED' && (
+              <Button variant="outline" size="sm" className="gap-1.5" onClick={() => setShowEditModal(true)}>
+                <Edit className="h-3.5 w-3.5" />Edit Event
+              </Button>
+          )}
+          {concert.status === 'DRAFT' && (
+              <Button onClick={handlePublish} disabled={publishing} className="gap-2">
+                {publishing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                {publishing ? 'Publishing...' : 'Publish'}
+              </Button>
+          )}
+        </div>
       </div>
 
       {/* Stats Section*/}
@@ -294,6 +300,13 @@ export default function ManageConcertPage() {
           </>
         )}
       </div>
+      {showEditModal && (
+          <EditConcertModal
+              concert={concert}
+              onClose={() => setShowEditModal(false)}
+              onSaved={fetchConcert}
+          />
+      )}
     </div>
   );
 }

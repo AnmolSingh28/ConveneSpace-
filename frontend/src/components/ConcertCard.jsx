@@ -99,13 +99,20 @@ export default function ConcertCard({ concert }) {
                 COMING SOON
               </Badge>
             ) : (
-              <Badge
-                className={`text-[10px] font-black uppercase px-3 py-1 border-none ${
-                  concert.status === 'PUBLISHED' ? 'bg-emerald-500 text-white shadow-sm' : 'bg-secondary text-secondary-foreground'
-                }`}
-              >
-                {concert.status === 'PUBLISHED' ? 'Available' : concert.status}
-              </Badge>
+                <Badge className={`text-[10px] font-black uppercase px-3 py-1 border-none ${
+                    concert.status === 'PUBLISHED' ? 'bg-emerald-500 text-white' :
+                        concert.status === 'POSTPONED' ? 'bg-amber-500 text-white' :
+                            concert.status === 'CANCELLED' ? 'bg-red-500 text-white' :
+                                concert.status === 'SOLD_OUT'  ? 'bg-red-600 text-white' :
+                                    concert.status === 'COMPLETED' ? 'bg-blue-500 text-white' :
+                                        'bg-secondary text-secondary-foreground'
+                }`}>
+                  {concert.status === 'PUBLISHED' ? 'Available' :
+                      concert.status === 'POSTPONED' ? 'Postponed' :
+                          concert.status === 'CANCELLED' ? 'Cancelled' :
+                              concert.status === 'SOLD_OUT'  ? 'Sold Out'  :
+                                  concert.status}
+                </Badge>
             )}
           </div>
         </div>
