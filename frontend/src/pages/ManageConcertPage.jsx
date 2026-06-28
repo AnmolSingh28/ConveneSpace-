@@ -109,7 +109,7 @@ export default function ManageConcertPage() {
   };
 
   if (loading || !concert) {
-    return <PageLoader message="Fetching concert details from the King..." />;
+    return <PageLoader message="Fetching event details..." />;
   }
 
   const totalTickets = concert.ticketTiers?.reduce((sum, t) => sum + t.totalQuantity, 0) || 0;

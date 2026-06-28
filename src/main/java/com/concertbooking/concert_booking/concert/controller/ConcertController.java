@@ -110,6 +110,16 @@ public class ConcertController {
         return ResponseEntity.ok(
                 ApiResponse.success(concertService.publishConcert(concertId, organizer), "Concert published successfully"));
     }
+    @PutMapping("/{concertId}")
+    @PreAuthorize("hasAnyRole('ORGANIZER','ADMIN')")
+    @Operation(summary = "Update concert details")
+    public ResponseEntity<ApiResponse<ConcertResponse>> updateConcert(
+            @PathVariable UUID concertId,
+            @Valid @RequestBody ConcertRequest request,
+            @AuthenticationPrincipal User organizer) {
+        return ResponseEntity.ok(
+                ApiResponse.success(concertService.updateConcert(concertId, request, organizer), "Concert updated"));
+    }
 
     @GetMapping("/my-concerts")
     @PreAuthorize("hasAnyRole('ORGANIZER','ADMIN')")

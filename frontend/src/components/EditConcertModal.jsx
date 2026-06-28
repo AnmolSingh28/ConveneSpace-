@@ -19,6 +19,11 @@ function toLocal(raw) {
     } catch { return ''; }
 }
 
+const toISO = (s) => s ? new Date(s).toISOString() : null;
+const F = ({ label, children }) => (
+    <div className="space-y-1.5"><Label className="text-xs">{label}</Label>{children}</div>
+);
+
 export default function EditConcertModal({ concert, onClose, onSaved }) {
     const [venues, setVenues] = useState([]);
     const [categories, setCategories] = useState([]);
@@ -37,7 +42,7 @@ export default function EditConcertModal({ concert, onClose, onSaved }) {
         bannerImageUrl: concert.bannerImageUrl || '',
         requiresPreRegistration: concert.requiresPreRegistration || false,
     });
-    const [postponeForm, setPostponeForm] = useState({ postponedUntil: '', reason: '' });
+    const [postponeDate, setPostponeDate] = useState('');
     const [cancelReason, setCancelReason] = useState('');
 
     useEffect(() => {
@@ -47,7 +52,6 @@ export default function EditConcertModal({ concert, onClose, onSaved }) {
         return () => { document.body.style.overflow = ''; };
     }, []);
 
-    const toISO = (s) => s ? new Date(s).toISOString() : null;
     const set = (key) => (e) => setForm(f => ({ ...f, [key]: e.target.type === 'checkbox' ? e.target.checked : e.target.value }));
 
     const handleSave = async () => {
@@ -68,10 +72,12 @@ export default function EditConcertModal({ concert, onClose, onSaved }) {
     };
 
     const handlePostpone = async () => {
-        if (!postponeForm.postponedUntil || !postponeForm.reason.trim()) return toast.error('Fill date and reason');
+        if (!postponeDate) return toast.error('Select a new date');
         setSaving(true);
         try {
-            await api.patch(`/api/v1/concerts/${concert.id}/postpone`, { postponedUntil: toISO(postponeForm.postponedUntil), reason: postponeForm.reason });
+            await api.patch(`/api/v1/concerts/${concert.id}/postpone`, null, {
+                params: { newDate: toISO(postponeDate) }
+            });
             toast.success('Event postponed'); onSaved?.(); onClose();
         } catch (err) { toast.error(err.response?.data?.message || 'Failed'); }
         finally { setSaving(false); }
@@ -81,16 +87,15 @@ export default function EditConcertModal({ concert, onClose, onSaved }) {
         if (!cancelReason.trim()) return toast.error('Provide a reason');
         setSaving(true);
         try {
-            await api.patch(`/api/v1/concerts/${concert.id}/cancel`, { reason: cancelReason });
+            await api.patch(`/api/v1/concerts/${concert.id}/cancel`, null, {
+                params: { reason: cancelReason }
+            });
             toast.success('Event cancelled'); onSaved?.(); onClose();
         } catch (err) { toast.error(err.response?.data?.message || 'Failed'); }
         finally { setSaving(false); }
     };
 
     const isCancelled = concert.status === 'CANCELLED';
-    const F = ({ label, children }) => (
-        <div className="space-y-1.5"><Label className="text-xs">{label}</Label>{children}</div>
-    );
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -164,12 +169,11 @@ export default function EditConcertModal({ concert, onClose, onSaved }) {
                                 <button type="button" onClick={() => setActiveStatus(s => s === 'postpone' ? null : 'postpone')}
                                         className="w-full flex items-center gap-3 p-4 text-left hover:bg-muted/40">
                                     <div className="w-8 h-8 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center shrink-0"><CalendarClock className="h-4 w-4" /></div>
-                                    <div><p className="text-sm font-semibold">Postpone Event</p><p className="text-xs text-muted-foreground">Set a new tentative date. Tickets stay valid.</p></div>
+                                    <div><p className="text-sm font-semibold">Postpone Event</p><p className="text-xs text-muted-foreground">Set a new date. Tickets stay valid.</p></div>
                                 </button>
                                 {activeStatus === 'postpone' && (
                                     <div className="px-4 pb-4 pt-3 border-t bg-muted/20 space-y-3">
-                                        <F label="New Date"><Input type="datetime-local" value={postponeForm.postponedUntil} onChange={e => setPostponeForm(f => ({ ...f, postponedUntil: e.target.value }))} /></F>
-                                        <F label="Reason"><Input placeholder="e.g. Due to weather..." value={postponeForm.reason} onChange={e => setPostponeForm(f => ({ ...f, reason: e.target.value }))} /></F>
+                                        <F label="New Date"><Input type="datetime-local" value={postponeDate} onChange={e => setPostponeDate(e.target.value)} /></F>
                                         <Button size="sm" className="bg-amber-500 hover:bg-amber-600 text-white gap-2" disabled={saving} onClick={handlePostpone}>
                                             {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CalendarClock className="h-3.5 w-3.5" />} Confirm Postpone
                                         </Button>

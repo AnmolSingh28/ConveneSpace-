@@ -243,6 +243,41 @@ public class ConcertService {
         log.info("Concert created: {} by: {}",saved.getId(),organizer.getEmail());
         return buildConcertResponse(saved);
     }
+    @Transactional
+    @CacheEvict(value = {"concerts", "concert"}, allEntries = true)
+    public ConcertResponse updateConcert(UUID concertId, ConcertRequest request, User organizer) {
+
+        Concert concert = getConcertEntityById(concertId);
+        boolean isAdmin = organizer.getRole() == UserRole.ADMIN;
+        boolean isOrganizer = concert.getOrganizer().getId().equals(organizer.getId());
+        if (!isAdmin && !isOrganizer) {
+            throw new AuthException("Not authorized to update this concert");
+        }
+        if (concert.getStatus() == ConcertStatus.CANCELLED) {
+            throw new BookingException("Cannot edit a cancelled concert");
+        }
+        Venue venue = venueRepository.findById(request.getVenueId())
+                .orElseThrow(() -> new ResourceNotFoundException("Venue not found"));
+
+        EventCategory category = eventCategoryRepository.findById(request.getCategoryId())
+                .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
+
+        concert.setTitle(request.getTitle());
+        concert.setArtistName(request.getArtistName());
+        concert.setDescription(request.getDescription());
+        concert.setVenue(venue);
+        concert.setCategory(category);
+        concert.setConcertDate(request.getConcertDate());
+        concert.setDoorsOpenTime(request.getDoorsOpenTime());
+        concert.setSaleStartTime(request.getSaleStartTime());
+        concert.setSaleEndTime(request.getSaleEndTime());
+        concert.setBannerImageUrl(request.getBannerImageUrl());
+        concert.setRequiresPreRegistration(request.isRequiresPreRegistration());
+
+        Concert saved = concertRepository.save(concert);
+        log.info("Concert updated: {} by: {}", concertId, organizer.getEmail());
+        return buildConcertResponse(saved);
+    }
 
     @Transactional
     @CacheEvict(value = {"concerts", "concert"}, allEntries = true)
