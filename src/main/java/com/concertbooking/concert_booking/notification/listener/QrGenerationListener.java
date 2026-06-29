@@ -87,7 +87,7 @@ public class QrGenerationListener {
 
             bookingItemRepository.saveAll(items);
 
-                emailService.sendQrTicketEmail(
+                emailService.sendBookingConfirmationEmail(
                         event.getUserEmail(),
                         event.getUserName(),
                         event.getBookingReference(),

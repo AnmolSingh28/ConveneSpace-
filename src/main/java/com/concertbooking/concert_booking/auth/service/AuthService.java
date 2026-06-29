@@ -169,7 +169,9 @@ public class AuthService {
     }
    //Logout
     public void logout(String accessToken,User user) {
-        seatLockService.releaseAllAssignedSeatsForUser(user);
+        if(user!= null) {
+            seatLockService.releaseAllAssignedSeatsForUser(user);
+        }
         try {
             if (jwtUtil.isTokenExpiredOrInvalid(accessToken)) {
                 return;

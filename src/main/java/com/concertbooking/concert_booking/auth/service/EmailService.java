@@ -73,13 +73,16 @@ public class EmailService {
             email.setSender(new SendSmtpEmailSender().name(fromName).email(fromEmail));
             email.setTo(List.of(new SendSmtpEmailTo().email(toEmail).name(userName)));
             email.setSubject("Booking Confirmed — " + concertTitle);
-            email.setTextContent(
-                    "Hi " + userName + ",\n\n" +
-                            "Your booking is confirmed!\n" +
-                            "Booking Reference: " + bookingRef + "\n" +
-                            "Concert: " + concertTitle + "\n\n" +
-                            "Your QR ticket will be emailed separately.\n\n" +
-                            "ConcertBooking Team"
+            email.setHtmlContent(
+                    "<h2>Hi " + userName + ",</h2>" +
+                            "<p>Your booking for <strong>" + concertTitle + "</strong> is confirmed!</p>" +
+                            "<p><strong>Booking Reference:</strong> " + bookingRef + "</p>" +
+                            "<p>Your QR code is ready. Show it at the venue entrance:</p>" +
+                            "<a href=\"https://convenespace.space/my-bookings\" " +
+                            "style=\"background:#3b82f6;color:white;padding:12px 24px;" +
+                            "border-radius:8px;text-decoration:none;display:inline-block;margin:16px 0\">" +
+                            "View My Tickets & QR Code</a>" +
+                            "<p style=\"color:#666;font-size:13px\">ConveneSpace Team</p>"
             );
             buildApi().sendTransacEmail(email);
             log.info("Booking confirmation sent to: {}", toEmail);
@@ -122,7 +125,7 @@ public class EmailService {
                             "</strong> are confirmed!</p>" +
                             "<p><strong>Booking Reference:</strong> " + bookingRef + "</p>" +
                             "<p>Your QR code is ready. Open the app to view and download it:</p>" +
-                            "<a href=\"http://localhost:5173/my-bookings\" " +
+                            "<a href=\"https://convenespace.space/my-bookings\" " +
                             "style=\"background:#3b82f6;color:white;padding:12px 24px;" +
                             "border-radius:8px;text-decoration:none;display:inline-block;" +
                             "margin:16px 0\">View My Tickets</a>" +
