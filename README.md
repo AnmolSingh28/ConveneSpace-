@@ -45,7 +45,12 @@ My goal was to build a project that reflects production oriented backend enginee
 - Nginx
 - GitHub Actions
 - Self Hosted GitHub Runner
+- 
+**Monitoring**
 
+- Prometheus
+- Grafana
+  
 **Frontend**
 - React
 - Vite
@@ -57,7 +62,10 @@ My goal was to build a project that reflects production oriented backend enginee
 
 The backend follows a layered architecture separating business logic, persistence, security and infra concerns into independent modules. 
 This approach improves maintainability, testing and future scalability while keeping each component focused on a single responsibility.
+
 Supporting infrastructure such as Redis, RabbitMQ, and Razorpay integrate with the service layer without tightly coupling business logic to external services.
+
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/cccb6dd2-29dd-429a-8d72-8d4c7ebf2be9" />
 
 ### AUTHENTICATION & SECURITY
 
@@ -166,3 +174,73 @@ The project has been tested through multiple approaches during development.
 - Authentication Testing
 - Payment Workflow Validation
 - Load Testing (Gatling-Java)
+  
+### LIVE DEMO
+
+**Application**: https://convenespace.space
+
+The React frontend and Spring Boot backend are deployed together on a single AWS EC2 instance behind an Nginx reverse proxy.
+
+## Screenshots
+
+<details>
+<summary>View Application Screenshots</summary>
+
+### Home Page
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/99132949-53b0-4be2-a0b6-b8cfd69bc1ff" />
+
+### Concert Detail and Ticket tiers
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/336924a0-932c-436b-a9f1-c26dea4e69e9" />
+
+### Seat Selection and Booking
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/4323e154-259a-4b34-a16c-fe4b4dc8309f" />
+
+### Organizer Dashboard
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/4f5add70-01cc-4b7d-9f7b-764b517ede2d" />
+
+### Admin Dashboard
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/4e3ab84d-3c78-4f03-af8a-2f800bf71ca8" />
+
+### API Documentation (Swagger UI)
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/ff982cef-9435-4aab-b1ed-70423101a253" />
+
+
+</details>
+
+### DEPLOYMENT
+
+The application is containerized using Docker and deployed on an AWS EC2 instance.
+
+Deployment stack includes:
+
+- Docker & Docker Compose
+- AWS EC2
+- Nginx Reverse Proxy
+- GitHub Actions CI/CD
+- Self Hosted GitHub Runner
+
+The deployment pipeline automatically builds and deploys the latest changes after successful commits to the repository.
+
+### GETTING STARTED
+
+**Prerequisites**
+
+- Java 21
+- Maven
+- Docker & Docker Compose
+
+**Clone the repository**
+
+git clone https://github.com/AnmolSingh28/ConveneSpace-.git
+cd ConveneSpace-
+
+**Run locally**
+
+docker compose up -d
+
+Local URLs:
+
+- Frontend: http://localhost:5173
+- Backend API: http://localhost:8080
+- Swagger UI: http://localhost:8080/swagger-ui.html
+
