@@ -79,12 +79,12 @@ const handleBookNow = async () => {
     navigate('/login');
     return;
   }
-  if (concert.requiresPreRegistration && !myRegistration) {
-    toast.error('This concert requires pre-registration.');
+  if (concert.requiresPreRegistration && !saleStarted) {
+    toast.error('Sale not started. Pre-register below.');
     return;
   }
-  if (concert.requiresPreRegistration && myRegistration && !myRegistration.queuePosition) {
-    toast.error('Queue not assigned yet. Please wait for the organizer.');
+  if (concert.requiresPreRegistration && saleStarted && !myRegistration?.queuePosition) {
+    toast.error('Queue not assigned yet. Contact organizer.');
     return;
   }
   if (!selectedTier) {
@@ -146,9 +146,8 @@ const handleBookNow = async () => {
       </div>
     );
   }
-const salesEnded =
-  concert?.saleEndTime &&
-  new Date(concert.saleEndTime) < new Date();
+const salesEnded = concert?.saleEndTime && new Date(concert.saleEndTime) < new Date();
+  const saleStarted = concert?.saleStartTime && new Date(concert.saleStartTime) < new Date();
 
   if (!concert) {
     return (
@@ -272,17 +271,25 @@ const salesEnded =
                   <AlertCircle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
                   <div>
                     <p className="text-sm font-medium text-amber-800">Pre-registration Required</p>
-                    <p className="text-xs text-amber-700 mt-0.5">High-demand event. Pre-register for a fair ticket queue.</p>
+                    <p className="text-xs text-amber-700 mt-0.5">
+                      {!saleStarted
+                          ? 'Pre-register now to get a fair queue position when sale starts.'
+                          : 'Sale is live! Use your queue position to book.'}
+                    </p>
                   </div>
                 </div>
-                {!myRegistration ? (
-                    <Button size="sm" onClick={handlePreRegister} disabled={preRegistering} className="bg-amber-500 hover:bg-amber-600 text-white">
-                      {preRegistering ? 'Registering...' : 'Pre-Register Now'}
-                    </Button>
-                ) : !myRegistration.queuePosition ? (
-                    <p className="text-xs text-amber-700 font-medium">✅ Registered! Waiting for queue assignment.</p>
+                {!saleStarted ? (
+                    !myRegistration ? (
+                        <Button size="sm" onClick={handlePreRegister} disabled={preRegistering} className="bg-amber-500 hover:bg-amber-600 text-white">
+                          {preRegistering ? 'Registering...' : 'Pre-Register Now'}
+                        </Button>
+                    ) : (
+                        <p className="text-xs text-amber-700 font-medium">✅ Registered! You'll get a queue position when sale starts.</p>
+                    )
                 ) : (
-                    <p className="text-xs text-amber-700 font-medium">✅ Queue position: #{myRegistration.queuePosition}</p>
+                    myRegistration?.queuePosition
+                        ? <p className="text-xs text-green-700 font-medium">✅ Queue position: #{myRegistration.queuePosition} — You can now book!</p>
+                        : <p className="text-xs text-red-700 font-medium">❌ Pre-registration is closed. Sale is now live.</p>
                 )}
               </div>
           )}

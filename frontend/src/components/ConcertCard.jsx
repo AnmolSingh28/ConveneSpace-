@@ -32,6 +32,7 @@ export default function ConcertCard({ concert }) {
   };
 
   const saleStartDate = parseKingDate(rawDate);
+  const saleStarted = saleStartDate && saleStartDate <= now;
   const isSaleFuture = saleStartDate && !isNaN(saleStartDate.getTime()) && saleStartDate > now;
 
   const cat = CATEGORY_CONFIG[concert.category] || {
@@ -88,12 +89,16 @@ export default function ConcertCard({ concert }) {
             <div className="flex items-center gap-2 text-xs text-muted-foreground"><MapPin className="h-3.5 w-3.5 shrink-0 text-primary" /><span className="line-clamp-1">{concert.venueName}, {concert.venueCity}</span></div>
           </div>
 
-          <div className="mt-4 pt-3 border-t flex items-center justify-between">
+          <div className="mt-4 pt-3 border-t flex items-center justify-between gap-2">
             <div className="flex flex-col">
               <span className="text-[9px] uppercase font-black text-muted-foreground tracking-tighter leading-none mb-1">From</span>
               <span className="text-sm font-black text-foreground">{formatCurrency(concert.startingPrice)}</span>
             </div>
-
+            {concert.requiresPreRegistration && !saleStarted && (
+                <Badge variant="outline" className="text-[10px] font-black border-purple-500 bg-purple-50 text-purple-700">
+                  🎟 PRE-REG
+                </Badge>
+            )}
             {isSaleFuture ? (
               <Badge variant="outline" className="text-[10px] font-black border-amber-500 bg-amber-50 text-amber-700 animate-pulse">
                 COMING SOON
