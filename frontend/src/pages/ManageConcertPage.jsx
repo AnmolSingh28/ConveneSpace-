@@ -70,6 +70,15 @@ export default function ManageConcertPage() {
       setPublishing(false);
     }
   };
+  const handleAssignQueue = async () => {
+    try {
+      await api.patch(`/api/v1/concerts/${concertId}/assign-queue`);
+      toast.success('Queue positions assigned!');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to assign queue');
+    }
+  };
+
 
   const handleAddTier = async (e) => {
     e.preventDefault();
@@ -134,6 +143,11 @@ export default function ManageConcertPage() {
           {concert.status !== 'CANCELLED' && (
               <Button variant="outline" size="sm" className="gap-1.5" onClick={() => setShowEditModal(true)}>
                 <Edit className="h-3.5 w-3.5" />Edit Event
+              </Button>
+          )}
+          {concert.requiresPreRegistration && concert.status === 'PUBLISHED' && (
+              <Button variant="outline" size="sm" onClick={handleAssignQueue}>
+                Assign Queue
               </Button>
           )}
           {concert.status === 'DRAFT' && (

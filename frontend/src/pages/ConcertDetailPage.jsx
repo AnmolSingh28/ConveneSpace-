@@ -26,7 +26,8 @@ export default function ConcertDetailPage() {
   const [loading, setLoading] = useState(true);
   const { user } = useAuthStore();
   const [selectedTier, setSelectedTier] = useState(null);
-
+  const [myRegistration, setMyRegistration] = useState(null);
+  const [preRegistering, setPreRegistering] = useState(false);
 const gaTierId = concert?.ticketTiers?.find(t => t.sectionType === 'GA')?.id;
 const { availabilityUpdates, viewerCount, queueSize, myPosition } = useWebSocket(concert?.id, gaTierId, user?.id);
 
@@ -65,11 +66,25 @@ sessionStorage.setItem('sessionId', sessionId);
       setLoading(false);
     }
   };
+  useEffect(() => {
+    if (!concert?.requiresPreRegistration || !accessToken) return;
+    api.get(`/api/v1/concerts/${id}/my-registration`)
+        .then(r => setMyRegistration(r.data.data))
+        .catch(() => setMyRegistration(null));
+  }, [concert?.id]);
 
 const handleBookNow = async () => {
   if (!accessToken) {
     toast.error('Please login to book tickets');
     navigate('/login');
+    return;
+  }
+  if (concert.requiresPreRegistration && !myRegistration) {
+    toast.error('This concert requires pre-registration.');
+    return;
+  }
+  if (concert.requiresPreRegistration && myRegistration && !myRegistration.queuePosition) {
+    toast.error('Queue not assigned yet. Please wait for the organizer.');
     return;
   }
   if (!selectedTier) {
@@ -99,6 +114,17 @@ const handleBookNow = async () => {
     navigate(`/book/${selectedTier.id}`);
   }
 };
+  const handlePreRegister = async () => {
+    if (!accessToken) { navigate('/login'); return; }
+    setPreRegistering(true);
+    try {
+      const res = await api.post(`/api/v1/concerts/${id}/pre-register`);
+      setMyRegistration(res.data.data);
+      toast.success('Pre-registered successfully!');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to pre-register');
+    } finally { setPreRegistering(false); }
+  };
 
   if (loading) {
     return (
@@ -241,15 +267,24 @@ const salesEnded =
 )}
 
           {concert?.requiresPreRegistration && (
-            <div className="flex gap-3 p-4 bg-amber-50 border border-amber-200 rounded-xl">
-              <AlertCircle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
-              <div>
-                <p className="text-sm font-medium text-amber-800">Pre-registration Required</p>
-                <p className="text-xs text-amber-700 mt-0.5">
-                  This is a high-demand event. You must pre-register to participate in the fair ticket queue.
-                </p>
+              <div className="flex flex-col gap-3 p-4 bg-amber-50 border border-amber-200 rounded-xl">
+                <div className="flex gap-3">
+                  <AlertCircle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-medium text-amber-800">Pre-registration Required</p>
+                    <p className="text-xs text-amber-700 mt-0.5">High-demand event. Pre-register for a fair ticket queue.</p>
+                  </div>
+                </div>
+                {!myRegistration ? (
+                    <Button size="sm" onClick={handlePreRegister} disabled={preRegistering} className="bg-amber-500 hover:bg-amber-600 text-white">
+                      {preRegistering ? 'Registering...' : 'Pre-Register Now'}
+                    </Button>
+                ) : !myRegistration.queuePosition ? (
+                    <p className="text-xs text-amber-700 font-medium">✅ Registered! Waiting for queue assignment.</p>
+                ) : (
+                    <p className="text-xs text-amber-700 font-medium">✅ Queue position: #{myRegistration.queuePosition}</p>
+                )}
               </div>
-            </div>
           )}
         </div>
 
